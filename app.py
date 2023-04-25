@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, send_file
 
 import psycopg2
 
@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-   return render_template('home.html')
+   return render_template('index.html')
 
 @app.route('/data')
 def index():
@@ -24,6 +24,7 @@ def index():
    movie_dict['years'] = []
    movie_dict['genres'] = []
    movie_dict['languages'] = []
+   movie_dict['countries'] = []
    movie_dict['movie_data'] = []
 
    for record in records:
@@ -40,6 +41,11 @@ def index():
       for language in split_languages_list:
          if language not in movie_dict['languages']:
             movie_dict['languages'].append(language)
+      
+      split_countries_list = record[5].split(', ')
+      for country in split_countries_list:
+         if country not in movie_dict['countries']:
+            movie_dict['countries'].append(country)
 
       movie_data_dict = {}
       movie_data_dict['imdbids'] = record[0]
@@ -47,7 +53,7 @@ def index():
       movie_data_dict['year'] = record[2]
       movie_data_dict['rated'] = record[3]
       movie_data_dict['boxoffice'] = record[4]
-      movie_data_dict['country'] = record[5]
+      movie_data_dict['country'] = split_countries_list
       movie_data_dict['genre'] = split_genres_list
       movie_data_dict['language'] = split_languages_list
       movie_data_dict['imdb_votes'] = record[8]
@@ -61,6 +67,11 @@ def index():
       movie_dict['movie_data'].append(movie_data_dict)
 
    return jsonify(movie_dict)
+
+@app.route('/image')
+def get_image():
+    filename = 'templates/Images/LOG_transparent.jpg'
+    return send_file(filename, mimetype='image/jpg')
 
 if __name__ == '__main__':
     app.run(debug=True)
